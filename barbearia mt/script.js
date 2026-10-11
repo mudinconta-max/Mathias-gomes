@@ -548,7 +548,7 @@ async function enviarAgendamento(event) {
             `${horario.slice(0, 2)}h${horario.slice(3, 5)}`;
 
         const linkCancelamento =
-            `https://matiasgomes.vercel.app/cancelar.html?token=${reserva.token_cancelamento}`;
+            `https://mathiasgomes.vercel.app/cancelar.html?token=${reserva.token_cancelamento}`;
 
         const mensagemWhatsApp = [
             "✂️ *NOVO AGENDAMENTO*",
