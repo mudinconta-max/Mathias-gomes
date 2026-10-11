@@ -1,0 +1,474 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080808">
+    <title>Cancelar agendamento | Barbearia</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --fundo: #080808;
+            --card: #151515;
+            --dourado: #d5ad62;
+            --dourado-claro: #f4d79a;
+            --texto: #f5f2eb;
+            --secundario: #aaa69e;
+            --borda: rgba(213, 173, 98, .2);
+            --erro: #ff7777;
+            --sucesso: #56d68b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 24px;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(ellipse at top, #241d10 0%, transparent 48%),
+                var(--fundo);
+            color: var(--texto);
+            font-family: "DM Sans", sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .marca {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .marca img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 12px;
+        }
+
+        .marca h1 {
+            margin: 0;
+            color: var(--dourado-claro);
+            font-size: 24px;
+            letter-spacing: 2px;
+        }
+
+        .marca p {
+            margin: 8px 0 0;
+            color: var(--secundario);
+            font-size: 13px;
+        }
+
+        .cartao {
+            padding: 28px;
+            border: 1px solid var(--borda);
+            border-radius: 20px;
+            background: linear-gradient(145deg, #191919, #101010);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
+        }
+
+        .icone {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 20px;
+            border: 1px solid var(--borda);
+            border-radius: 50%;
+            color: var(--dourado-claro);
+            font-size: 27px;
+        }
+
+        h2 {
+            margin: 0 0 10px;
+            text-align: center;
+            font-size: 23px;
+        }
+
+        .descricao {
+            margin: 0 0 24px;
+            color: var(--secundario);
+            font-size: 14px;
+            line-height: 1.7;
+            text-align: center;
+        }
+
+        .detalhes {
+            margin: 20px 0;
+            padding: 5px 17px;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, .2);
+        }
+
+        .linha {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            font-size: 14px;
+        }
+
+        .linha:last-child {
+            border-bottom: 0;
+        }
+
+        .linha span {
+            color: var(--secundario);
+        }
+
+        .linha strong {
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+
+        .botao {
+            width: 100%;
+            min-height: 50px;
+            padding: 14px 18px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--dourado);
+            color: #17120a;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .2s, transform .2s;
+        }
+
+        .botao:hover {
+            background: var(--dourado-claro);
+        }
+
+        .botao:active {
+            transform: scale(.99);
+        }
+
+        .botao:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .botao-secundario {
+            display: block;
+            margin-top: 12px;
+            padding: 13px;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            color: var(--texto);
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .mensagem {
+            margin: 18px 0 0;
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .mensagem:empty {
+            display: none;
+        }
+
+        .mensagem.erro {
+            color: var(--erro);
+        }
+
+        .mensagem.sucesso {
+            color: var(--sucesso);
+        }
+
+        .rodape {
+            margin-top: 20px;
+            color: var(--secundario);
+            font-size: 12px;
+            line-height: 1.7;
+            text-align: center;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 16px;
+            }
+
+            .cartao {
+                padding: 22px 18px;
+            }
+
+            h2 {
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <header class="marca">
+            <img src="./assets/logo.png" alt="Logo da barbearia"
+                 onerror="this.hidden = true">
+            <h1>Mathias Gomes</h1>
+            <p>Agendamento online</p>
+        </header>
+
+        <section class="cartao">
+            <div class="icone" aria-hidden="true">✂</div>
+
+            <h2 id="titulo">Seu agendamento</h2>
+
+            <p class="descricao" id="descricao">
+                Estamos consultando os dados da sua reserva.
+            </p>
+
+            <div class="detalhes" id="detalhes" hidden>
+                <div class="linha">
+                    <span>Serviço</span>
+                    <strong id="servico">—</strong>
+                </div>
+
+                <div class="linha">
+                    <span>Dia</span>
+                    <strong id="dia">—</strong>
+                </div>
+
+                <div class="linha">
+                    <span>Data</span>
+                    <strong id="data">—</strong>
+                </div>
+
+                <div class="linha">
+                    <span>Horário</span>
+                    <strong id="horario">—</strong>
+                </div>
+
+                <div class="linha">
+                    <span>Status</span>
+                    <strong id="status">—</strong>
+                </div>
+            </div>
+
+            <button class="botao" id="botao-cancelar" type="button" hidden>
+                Confirmar cancelamento
+            </button>
+
+            <a class="botao-secundario" href="./index.html">
+                Voltar para a barbearia
+            </a>
+
+            <p class="mensagem" id="mensagem" role="status" aria-live="polite"></p>
+        </section>
+
+        <footer class="rodape">
+            Em caso de dúvidas, entre em contato com a barbearia pelo WhatsApp.
+        </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        (() => {
+            "use strict";
+
+            const SUPABASE_URL =
+                "https://oomruxmmdlmfcwenxnnh.supabase.co";
+
+            const SUPABASE_KEY =
+                "sb_publishable_3qQbBUh6Mp5e3No473Weew_lp-V5GCh";
+
+            const supabase = window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+            const token = new URLSearchParams(
+                window.location.search
+            ).get("token");
+
+            const $ = id => document.getElementById(id);
+
+            const botao = $("botao-cancelar");
+            const mensagem = $("mensagem");
+            const detalhes = $("detalhes");
+
+            let reservaCarregada = false;
+            let cancelando = false;
+
+            function mostrarMensagem(texto, tipo = "") {
+                mensagem.textContent = texto;
+                mensagem.className = "mensagem";
+
+                if (tipo) mensagem.classList.add(tipo);
+            }
+
+            function formatarData(dataISO) {
+                const partes = dataISO.split("-");
+
+                return partes.length === 3
+                    ? `${partes[2]}/${partes[1]}/${partes[0]}`
+                    : dataISO;
+            }
+
+            function nomeDia(dataISO) {
+                const data = new Date(`${dataISO}T12:00:00`);
+
+                return new Intl.DateTimeFormat("pt-BR", {
+                    weekday: "long"
+                }).format(data);
+            }
+
+            function bloquearCancelamento(texto) {
+                $("titulo").textContent = "Agendamento indisponível";
+                $("descricao").textContent = texto;
+                botao.hidden = true;
+            }
+
+            async function consultarReserva() {
+                if (!token) {
+                    bloquearCancelamento(
+                        "O link está incompleto. Abra o link de cancelamento recebido no WhatsApp."
+                    );
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase.rpc(
+                        "consultar_agendamento_cancelamento",
+                        { p_token: token }
+                    );
+
+                    if (error) throw error;
+
+                    const reserva = Array.isArray(data) ? data[0] : null;
+
+                    if (!reserva) {
+                        bloquearCancelamento(
+                            "Não encontramos uma reserva com esse link. Confira se você abriu o link correto."
+                        );
+                        return;
+                    }
+
+                    reservaCarregada = true;
+
+                    $("titulo").textContent = "Detalhes da reserva";
+                    $("descricao").textContent =
+                        "Confira os dados abaixo antes de cancelar seu horário.";
+
+                    $("servico").textContent = reserva.servico || "—";
+                    $("dia").textContent = nomeDia(reserva.data_agendamento);
+                    $("data").textContent = formatarData(reserva.data_agendamento);
+                    $("horario").textContent =
+                        String(reserva.horario || "").slice(0, 5);
+
+                    if (reserva.status === "reservado") {
+                        $("status").textContent = "Reservado";
+                        botao.hidden = false;
+                        mostrarMensagem(
+                            "Ao confirmar, seu horário será liberado para outra pessoa."
+                        );
+                    } else {
+                        $("status").textContent = "Cancelado";
+                        bloquearCancelamento(
+                            "Este agendamento já foi cancelado e não pode ser cancelado novamente."
+                        );
+                    }
+
+                    detalhes.hidden = false;
+
+                } catch (erro) {
+                    console.error("Erro ao consultar reserva:", erro);
+
+                    bloquearCancelamento(
+                        "Não foi possível consultar sua reserva agora. Tente novamente mais tarde."
+                    );
+                }
+            }
+
+            botao.addEventListener("click", async () => {
+                if (!reservaCarregada || cancelando || !token) return;
+
+                const confirmar = window.confirm(
+                    "Tem certeza de que deseja cancelar este agendamento?"
+                );
+
+                if (!confirmar) return;
+
+                cancelando = true;
+                botao.disabled = true;
+                botao.textContent = "Cancelando...";
+
+                try {
+                    const { data, error } = await supabase.rpc(
+                        "cancelar_agendamento",
+                        { p_token: token }
+                    );
+
+                    if (error) throw error;
+
+                    const cancelado =
+                        data === true ||
+                        data?.cancelar_agendamento === true;
+
+                    if (!cancelado) {
+                        mostrarMensagem(
+                            "Não foi possível cancelar. O horário talvez já tenha passado ou a reserva já esteja cancelada.",
+                            "erro"
+                        );
+
+                        await consultarReserva();
+                        return;
+                    }
+
+                    $("status").textContent = "Cancelado";
+                    $("titulo").textContent = "Agendamento cancelado";
+                    $("descricao").textContent =
+                        "Seu horário foi cancelado e liberado para outra pessoa.";
+
+                    botao.hidden = true;
+
+                    mostrarMensagem(
+                        "Cancelamento realizado com sucesso!",
+                        "sucesso"
+                    );
+
+                } catch (erro) {
+                    console.error("Erro ao cancelar:", erro);
+
+                    mostrarMensagem(
+                        "Não foi possível cancelar agora. Verifique sua conexão e tente novamente.",
+                        "erro"
+                    );
+
+                } finally {
+                    cancelando = false;
+                    botao.disabled = false;
+                    botao.textContent = "Confirmar cancelamento";
+                }
+            });
+
+            consultarReserva();
+        })();
+    </script>
+</body>
+</html>

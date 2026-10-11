@@ -1,0 +1,452 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0b0b">
+
+    <meta
+        name="description"
+        content="Agende seu horário na barbearia. Escolha o serviço, a data, o barbeiro e digite o horário desejado."
+    >
+
+    <title>Barbearia | Agendamento Online</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+    <link rel="stylesheet" href="./style.css">
+
+    <style>
+        .cabecalho-acoes {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .botao-painel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 8px;
+            color: #fff;
+            background: transparent;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .botao-painel:hover {
+            background: #222;
+            border-color: #fff;
+        }
+
+        #horario-manual {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #mensagem-horarios {
+            margin-top: 10px;
+        }
+
+        #mensagem-horarios.erro {
+            color: #ff6868;
+        }
+
+        #mensagem-horarios.sucesso {
+            color: #65d995;
+        }
+
+        @media (max-width: 768px) {
+            .cabecalho-acoes {
+                gap: 8px;
+            }
+
+            .botao-painel {
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./script.js" defer></script>
+</head>
+
+<body>
+
+    <!-- TELA DE ABERTURA -->
+    <div
+        id="abertura-barbearia"
+        role="status"
+        aria-label="Bem-vindo à barbearia"
+    >
+        <img
+            src="./assets/logo.png"
+            alt="Logo da barbearia"
+            fetchpriority="high"
+        >
+
+        <span class="abertura-linha" aria-hidden="true"></span>
+
+        <p>SEU ESTILO, NOSSA ESPECIALIDADE</p>
+    </div>
+
+    <!-- CONTEÚDO DO SITE -->
+    <div id="conteudo-site">
+
+        <!-- CABEÇALHO -->
+        <header class="cabecalho" id="inicio">
+            <div class="container cabecalho-conteudo">
+
+                <a href="#inicio" class="logo" aria-label="Página inicial">
+                    <img
+                        src="./assets/logo.png"
+                        alt="Logo da barbearia"
+                        class="logo-imagem"
+                    >
+                </a>
+
+                <nav class="navegacao" aria-label="Navegação principal">
+                    <a href="#inicio">Início</a>
+                    <a href="#agendamento">Agendamento</a>
+                    <a href="#como-funciona">Como funciona</a>
+                    <a href="#localizacao">Localização</a>
+                </nav>
+
+                <div class="cabecalho-acoes">
+                    <a href="./login.html" class="botao botao-painel">
+                        <i class="fa-solid fa-user-lock"></i>
+                        Acessar painel
+                    </a>
+
+                    <a href="#agendamento" class="botao botao-cabecalho">
+                        <i class="fa-regular fa-calendar-check"></i>
+                        Agendar horário
+                    </a>
+                </div>
+
+            </div>
+        </header>
+
+        <main>
+
+            <!-- APRESENTAÇÃO -->
+            <section class="hero">
+                <div class="container hero-conteudo">
+
+                    <div class="hero-texto">
+
+                        <span class="etiqueta">
+                            <span class="ponto-status"></span>
+                            SEU ESTILO, NOSSA ESPECIALIDADE
+                        </span>
+
+                        <h1>
+                            Mais que um corte.
+                            <span>Uma experiência.</span>
+                        </h1>
+
+                        <p>
+                            Seu próximo visual começa aqui. Escolha seu serviço,
+                            encontre um horário disponível e solicite seu agendamento
+                            diretamente pelo WhatsApp.
+                        </p>
+
+                        <div class="hero-acoes">
+                            <a href="#agendamento" class="botao botao-principal">
+                                Agendar agora
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+
+                            <a href="#como-funciona" class="botao botao-secundario">
+                                <i class="fa-regular fa-circle-play"></i>
+                                Como funciona
+                            </a>
+                        </div>
+
+                        <div class="hero-detalhes">
+                            <div class="detalhe-item">
+                                <i class="fa-regular fa-clock"></i>
+                                <span>Terça a sábado, das 09h às 20h</span>
+                            </div>
+
+                            <div class="detalhe-item">
+                                <i class="fa-solid fa-calendar-check"></i>
+                                <span>Confirmação pelo WhatsApp</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="hero-visual">
+                        <div class="hero-imagem-fundo" aria-hidden="true"></div>
+
+                        <div class="hero-card-flutuante">
+                            <div class="hero-card-icone">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+
+                            <div>
+                                <strong>Seu horário, do seu jeito.</strong>
+                                <span>Solicite em poucos passos.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- AGENDAMENTO -->
+            <section class="secao-agendamento" id="agendamento">
+                <div class="container">
+
+                    <div class="titulo-secao">
+                        <span class="subtitulo">RESERVE SEU MOMENTO</span>
+                        <h2>Agende seu <span>horário</span></h2>
+
+                        <p>
+                            Escolha o barbeiro, o serviço, a data e digite
+                            o horário que deseja. A disponibilidade será verificada.
+                        </p>
+                    </div>
+
+                    <div class="agendamento-card">
+
+                        <div class="agendamento-intro">
+                            <div class="agendamento-icone">
+                                <i class="fa-solid fa-scissors"></i>
+                            </div>
+
+                            <div>
+                                <h3>Seu próximo corte</h3>
+                                <p>Escolha seu horário e fale diretamente com o barbeiro.</p>
+                            </div>
+                        </div>
+
+                        <form id="form-agendamento">
+
+                            <div class="campo-grupo">
+                                <label for="nome-cliente">
+                                    <i class="fa-regular fa-user"></i>
+                                    Seu nome completo
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="nome-cliente"
+                                    name="nome"
+                                    placeholder="Digite seu nome completo"
+                                    autocomplete="name"
+                                    maxlength="100"
+                                    required
+                                >
+                            </div>
+
+                            <div class="campo-grupo">
+                                <label for="telefone-cliente">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                    Seu telefone com DDD
+                                </label>
+
+                                <input
+                                    type="tel"
+                                    id="telefone-cliente"
+                                    name="telefone"
+                                    placeholder="(84) 99999-9999"
+                                    autocomplete="tel"
+                                    inputmode="tel"
+                                    maxlength="20"
+                                    required
+                                >
+                            </div>
+
+                            <!-- O SCRIPT CARREGA OS BARBEIROS DO SUPABASE -->
+
+                            <div class="campo-grupo">
+                                <label for="servico">
+                                    <i class="fa-solid fa-scissors"></i>
+                                    Escolha o serviço
+                                </label>
+
+                                <select id="servico" name="servico" required>
+                                    <option value="" disabled selected>
+                                        Carregando serviços...
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="campo-grupo">
+                                <label for="data-agendamento">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    Data do atendimento
+                                </label>
+
+                                <select
+                                    id="data-agendamento"
+                                    name="data"
+                                    required
+                                >
+                                    <option value="" disabled selected>
+                                        Carregando datas disponíveis...
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="campo-grupo campo-horarios">
+
+                                <label for="horario-manual">
+                                    <i class="fa-regular fa-clock"></i>
+                                    Digite o horário desejado
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="horario-manual"
+                                    name="horario-manual"
+                                    placeholder="Ex.: 09:20 ou 14:10"
+                                    inputmode="numeric"
+                                    autocomplete="off"
+                                    maxlength="5"
+                                    required
+                                >
+
+                                <p
+                                    id="mensagem-horarios"
+                                    class="mensagem-horarios"
+                                    aria-live="polite"
+                                >
+                                    Escolha o barbeiro, o serviço e a data.
+                                    Depois, digite o horário desejado.
+                                </p>
+
+                                <div
+                                    id="lista-horarios"
+                                    class="lista-horarios"
+                                    aria-label="Horários disponíveis"
+                                    hidden
+                                ></div>
+
+                                <input
+                                    type="hidden"
+                                    id="horario-selecionado"
+                                    name="horario"
+                                    required
+                                >
+
+                            </div>
+
+                            <div
+                                id="mensagem-formulario"
+                                class="mensagem-formulario"
+                                role="status"
+                                aria-live="polite"
+                            ></div>
+
+                            <button
+                                type="submit"
+                                id="botao-agendar"
+                                class="botao botao-principal botao-agendar"
+                            >
+                                <i class="fa-brands fa-whatsapp"></i>
+                                Solicitar pelo WhatsApp
+                            </button>
+
+                            <p class="aviso-agendamento">
+                                <i class="fa-solid fa-circle-info"></i>
+                                A solicitação depende da confirmação do barbeiro.
+                                Aguarde a confirmação pelo WhatsApp.
+                            </p>
+
+                        </form>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- LOCALIZAÇÃO -->
+            <section class="secao-localizacao" id="localizacao">
+                <div class="container localizacao-conteudo">
+
+                    <div class="localizacao-texto">
+                        <span class="subtitulo">ESTAMOS ESPERANDO VOCÊ</span>
+
+                        <h2>Venha renovar <span>seu estilo.</span></h2>
+
+                        <p>
+                            Estamos prontos para cuidar do seu visual.
+                            Consulte o endereço e trace sua rota até a barbearia.
+                        </p>
+
+                        <div class="endereco-bloco">
+                            <i class="fa-solid fa-location-dot"></i>
+
+                            <div>
+                                <strong>Nosso endereço</strong>
+
+                                <p id="endereco-barbearia">
+                                    Rua Gilberto Roberto Gomes, 550,
+                                    Cajupiranga, Parnamirim - RN, CEP 59157-300.
+                                </p>
+                            </div>
+                        </div>
+
+                        <a
+                            href="https://www.google.com/maps/dir/?api=1&destination=Rua%20Gilberto%20Roberto%20Gomes%2C%20550%2C%20Cajupiranga%2C%20Parnamirim%2C%20RN%2C%2059157-300"
+                            id="link-mapa"
+                            class="botao botao-principal"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            Ver localização
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- RODAPÉ -->
+        <footer class="rodape">
+
+            <div class="container rodape-conteudo">
+                <p>Seu estilo merece esse cuidado.</p>
+
+                <a
+                    href="#inicio"
+                    class="voltar-topo"
+                    aria-label="Voltar ao topo"
+                >
+                    <i class="fa-solid fa-arrow-up"></i>
+                </a>
+            </div>
+
+            <div class="rodape-final">
+                <p>
+                    &copy; <span id="ano-atual"></span> Barbearia.
+                    Todos os direitos reservados.
+                </p>
+            </div>
+
+        </footer>
+
+    </div>
+
+</body>
+</html>

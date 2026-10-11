@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b0b">
+  <title>Financeiro | Barbearia Mathias Gomes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#0b0b0b; --card:#151515; --border:#303030;
+      --gold:#d4a45b; --text:#f5f5f5; --muted:#aaa;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:"DM Sans",sans-serif;
+    }
+    header {
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:12px; padding:20px 5%;
+      background:#121212; border-bottom:1px solid #292929;
+    }
+    header h1 { margin:0; font:700 22px "Playfair Display",serif; }
+    header h1 span { color:var(--gold); }
+    button,input,select { font:inherit; }
+    button,.link {
+      display:inline-flex; align-items:center; justify-content:center;
+      min-height:42px; padding:10px 14px; border:1px solid #444;
+      border-radius:8px; background:#202020; color:#fff;
+      text-decoration:none; cursor:pointer;
+    }
+    button:hover,.link:hover { border-color:var(--gold); }
+    button:disabled { opacity:.55; cursor:wait; }
+    .gold { background:var(--gold); color:#111; border-color:var(--gold); font-weight:700; }
+    main { width:min(1150px,92%); margin:32px auto; }
+    h2 { font:700 clamp(27px,5vw,36px) "Playfair Display",serif; margin:0 0 8px; }
+    h3 { margin:0 0 16px; }
+    p { color:var(--muted); line-height:1.6; }
+    .box {
+      padding:20px; margin:20px 0; background:var(--card);
+      border:1px solid var(--border); border-radius:14px;
+    }
+    .filters,.form-grid {
+      display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px; align-items:end;
+    }
+    .cards {
+      display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px; margin:20px 0;
+    }
+    .metric {
+      padding:18px; background:var(--card);
+      border:1px solid var(--border); border-radius:12px;
+      min-width:0;
+    }
+    .metric span { color:var(--muted); font-size:13px; }
+    .metric strong { display:block; margin-top:8px; font-size:clamp(20px,3vw,28px); overflow-wrap:anywhere; }
+    .field { display:grid; gap:7px; }
+    label { color:#ddd; font-size:13px; }
+    input,select {
+      width:100%; min-width:0; padding:12px; border-radius:8px;
+      border:1px solid #393939; background:#0d0d0d; color:#fff;
+    }
+    input:focus,select:focus { outline:1px solid var(--gold); border-color:var(--gold); }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+    .notice { white-space:pre-wrap; overflow-wrap:anywhere; }
+    .error { color:#ff9999; }
+    .success { color:#9cdaa7; }
+    .history { display:grid; gap:10px; }
+    .history-item {
+      padding:14px; border:1px solid var(--border);
+      border-radius:9px; background:#101010;
+    }
+    .history-item strong { display:block; margin-bottom:5px; }
+    footer { padding:24px; text-align:center; color:#777; font-size:13px; }
+    [hidden] { display:none !important; }
+    @media(max-width:700px) {
+      header { padding:16px 4%; }
+      header h1 { font-size:18px; }
+      .filters,.form-grid { grid-template-columns:1fr; }
+      .cards { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+      .metric { padding:12px; }
+      .box { padding:15px; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Barbearia <span>•</span> Financeiro</h1>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="link" href="./painel.html">Voltar ao painel</a>
+    <button id="sair" type="button">Sair</button>
+  </div>
+</header>
+
+<main>
+  <h2 id="titulo">Carregando financeiro...</h2>
+  <p id="subtitulo">Consultando os dados reais da barbearia.</p>
+
+  <section class="box">
+    <h3>Consultar período</h3>
+    <div class="filters">
+      <div class="field">
+        <label for="periodo">Tipo de consulta</label>
+        <select id="periodo">
+          <option value="dia">Dia</option>
+          <option value="mes">Mês</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="data-ref">Data de referência</label>
+        <input id="data-ref" type="date" required>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="gold" id="buscar" type="button">Consultar</button>
+    </div>
+  </section>
+
+  <section class="cards">
+    <article class="metric">
+      <span>Faturamento concluído</span>
+      <strong id="faturamento">—</strong>
+    </article>
+    <article class="metric">
+      <span>Atendimentos concluídos</span>
+      <strong id="quantidade">—</strong>
+    </article>
+    <article class="metric">
+      <span>Ticket médio</span>
+      <strong id="ticket">—</strong>
+    </article>
+    <article class="metric" id="card-comissao" hidden>
+      <span>Comissão de Gustavo (50%)</span>
+      <strong id="comissao">—</strong>
+    </article>
+    <article class="metric" id="card-repassado" hidden>
+      <span>Total já repassado no mês</span>
+      <strong id="repassado">—</strong>
+    </article>
+    <article class="metric" id="card-pendente" hidden>
+      <span>Comissão pendente</span>
+      <strong id="pendente">—</strong>
+    </article>
+  </section>
+
+  <section class="box" id="secao-repasse" hidden>
+    <h3>Atualizar repasse do Gustavo</h3>
+    <p>Informe o total acumulado já pago ao Gustavo no mês selecionado. Esse campo substitui o total anterior daquele mês.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="mes-repasse">Mês do repasse</label>
+        <input id="mes-repasse" type="month" required>
+      </div>
+      <div class="field">
+        <label for="valor-repasse">Total já pago (R$)</label>
+        <input id="valor-repasse" type="number" min="0" step="0.01" placeholder="0,00" required>
+      </div>
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label for="obs-repasse">Observação (opcional)</label>
+      <input id="obs-repasse" maxlength="250" placeholder="Ex.: repasse realizado em dinheiro">
+    </div>
+    <div class="actions">
+      <button class="gold" id="salvar-repasse" type="button">Salvar repasse</button>
+    </div>
+    <p id="msg-repasse" class="notice" role="status"></p>
+  </section>
+
+  <section class="box">
+    <h3>Registrar corte avulso</h3>
+    <p>Use para atendimentos presenciais sem reserva. Selecione o profissional que realizou o serviço.</p>
+    <form id="form-avulso">
+      <div class="form-grid">
+        <div class="field">
+          <label for="barbeiro-avulso">Profissional</label>
+          <select id="barbeiro-avulso" required></select>
+        </div>
+        <div class="field">
+          <label for="servico-avulso">Serviço</label>
+          <select id="servico-avulso" required></select>
+        </div>
+        <div class="field">
+          <label for="valor-avulso">Valor cobrado (R$)</label>
+          <input id="valor-avulso" type="number" min="0" step="0.01" required placeholder="0,00">
+        </div>
+        <div class="field">
+          <label for="data-avulso">Data do atendimento</label>
+          <input id="data-avulso" type="date" required>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="gold" id="salvar-avulso" type="submit">Registrar atendimento</button>
+      </div>
+    </form>
+    <p id="msg-avulso" class="notice" role="status"></p>
+  </section>
+
+  <section class="box">
+    <h3>Atendimentos concluídos no período</h3>
+    <div id="historico" class="history">
+      <p>Carregando...</p>
+    </div>
+  </section>
+
+  <p id="mensagem" class="notice" role="status"></p>
+</main>
+
+<footer>Barbearia Mathias Gomes · Financeiro</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const SUPABASE_URL = "https://oomruxmmdlmfcwenxnnh.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_3qQbBUh6Mp5e3No473Weew_lp-V5GCh";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const GUSTAVO_ID = "a6511587-292f-4608-a443-a15476dbc1d4";
+  const MATHIAS_ID = "031adab0-5bcf-4f41-aff7-fa4891dbb40f";
+  const $ = id => document.getElementById(id);
+
+  let perfil = null;
+  let barbeiros = [];
+  let servicos = [];
+
+  function hojeLocal() {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString().slice(0, 10);
+  }
+
+  function primeiroDiaMes(data) {
+    return data.slice(0, 7) + "-01";
+  }
+
+  function proximoDiaMes(data) {
+    const [ano, mes] = data.slice(0, 7).split("-").map(Number);
+    return ano + "-" + String(mes === 12 ? 1 : mes + 1).padStart(2, "0") +
+      "-01";
+  }
+
+  function intervalo() {
+    const data = $("data-ref").value;
+    if (!data) throw new Error("Selecione uma data para consultar.");
+
+    if ($("periodo").value === "mes") {
+      return { inicio: primeiroDiaMes(data), fim: proximoDiaMes(data) };
+    }
+
+    const d = new Date(data + "T12:00:00");
+    d.setDate(d.getDate() + 1);
+    const fim = d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0");
+
+    return { inicio: data, fim };
+  }
+
+  function moeda(valor) {
+    return Number(valor || 0).toLocaleString("pt-BR", {
+      style: "currency", currency: "BRL"
+    });
+  }
+
+  function escapar(texto) {
+    return String(texto ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+    })[c]);
+  }
+
+  function dataBonita(data) {
+    if (!data) return "—";
+    const [a, m, d] = data.slice(0, 10).split("-");
+    return `${d}/${m}/${a}`;
+  }
+
+  function mostrar(id, texto, tipo = "") {
+    const node = $(id);
+    node.textContent = texto;
+    node.className = "notice" + (tipo ? " " + tipo : "");
+  }
+
+  async function carregarListas() {
+    const [bRes, sRes] = await Promise.all([
+      db.from("barbeiros").select("id,nome,ativo").eq("ativo", true).order("nome"),
+      db.from("servicos").select("id,nome,preco,duracao_minutos,ativo").eq("ativo", true).order("nome")
+    ]);
+    if (bRes.error) throw bRes.error;
+    if (sRes.error) throw sRes.error;
+
+    barbeiros = bRes.data || [];
+    servicos = sRes.data || [];
+
+    $("barbeiro-avulso").replaceChildren();
+    barbeiros.forEach(b => {
+      const op = document.createElement("option");
+      op.value = b.id;
+      op.textContent = b.nome;
+      $("barbeiro-avulso").appendChild(op);
+    });
+
+    $("servico-avulso").replaceChildren();
+    servicos.forEach(s => {
+      const op = document.createElement("option");
+      op.value = s.id;
+      op.textContent = `${s.nome} — ${moeda(s.preco)}`;
+      op.dataset.nome = s.nome;
+      op.dataset.preco = s.preco;
+      $("servico-avulso").appendChild(op);
+    });
+
+    const ehDono = perfil.papel === "dono";
+    if (!ehDono) {
+      $("barbeiro-avulso").value = perfil.barbeiro_id || "";
+      $("barbeiro-avulso").disabled = true;
+      $("secao-repasse").hidden = true;
+      $("card-repassado").hidden = true;
+      $("card-pendente").hidden = true;
+      $("card-comissao").hidden = perfil.barbeiro_id !== GUSTAVO_ID;
+    } else {
+      $("secao-repasse").hidden = false;
+      $("card-comissao").hidden = false;
+      $("card-repassado").hidden = false;
+      $("card-pendente").hidden = false;
+    }
+
+    if (perfil.papel === "barbeiro" && !perfil.barbeiro_id) {
+      throw new Error("Seu perfil não está vinculado a um barbeiro.");
+    }
+
+    if (perfil.papel === "barbeiro" && perfil.barbeiro_id !== GUSTAVO_ID) {
+      $("card-comissao").hidden = true;
+    }
+  }
+
+  $("servico-avulso").addEventListener("change", () => {
+    const op = $("servico-avulso").selectedOptions[0];
+    if (op) $("valor-avulso").value = Number(op.dataset.preco || 0).toFixed(2);
+  });
+
+  async function registrarAvulso(event) {
+    event.preventDefault();
+    const botao = $("salvar-avulso");
+    botao.disabled = true;
+    mostrar("msg-avulso", "Registrando atendimento...");
+
+    try {
+      const barbeiroId = $("barbeiro-avulso").value;
+      const servicoId = $("servico-avulso").value;
+      const servico = servicos.find(s => s.id === servicoId);
+      const valor = Number($("valor-avulso").value);
+      const data = $("data-avulso").value;
+
+      if (!barbeiroId || !servico || !data || !Number.isFinite(valor) || valor < 0) {
+        throw new Error("Confira profissional, serviço, valor e data.");
+      }
+
+      if (perfil.papel === "barbeiro" && barbeiroId !== perfil.barbeiro_id) {
+        throw new Error("Você só pode registrar atendimentos para sua própria agenda.");
+      }
+
+      const { error } = await db.from("atendimentos_avulsos").insert({
+        barbeiro_id: barbeiroId,
+        servico_id: servico.id,
+        servico: servico.nome,
+        valor,
+        data_atendimento: data,
+        criado_por: perfil.id
+      });
+      if (error) throw error;
+
+      $("form-avulso").reset();
+      $("data-avulso").value = hojeLocal();
+      $("barbeiro-avulso").value =
+        perfil.papel === "barbeiro" ? perfil.barbeiro_id : barbeiroId;
+      mostrar("msg-avulso", "Atendimento avulso registrado com sucesso.", "success");
+      await consultar();
+    } catch (e) {
+      console.error(e);
+      mostrar("msg-avulso", e.message || "Não foi possível registrar o atendimento.", "error");
+    } finally {
+      botao.disabled = false;
+    }
+  }
+
+  async function buscarRepasses(mes) {
+    const { data, error } = await db
+      .from("repasses_gustavo")
+      .select("valor_pago,observacao")
+      .eq("mes", mes)
+      .maybeSingle();
+
+    if (error) throw error;
+    $("valor-repasse").value = data ? Number(data.valor_pago).toFixed(2) : "0.00";
+    $("obs-repasse").value = data?.observacao || "";
+    return Number(data?.valor_pago || 0);
+  }
+
+  async function salvarRepasse() {
+    if (perfil.papel !== "dono") throw new Error("Somente o dono pode atualizar repasses.");
+
+    const mes = $("mes-repasse").value;
+    const valor = Number($("valor-repasse").value);
+    if (!mes || !Number.isFinite(valor) || valor < 0) {
+      throw new Error("Informe o mês e um valor válido.");
+    }
+
+    const { data: authData } = await db.auth.getUser();
+    const usuario = authData?.user;
+    if (!usuario) throw new Error("Sua sessão expirou. Entre novamente.");
+
+    const { error } = await db.from("repasses_gustavo").upsert({
+      mes: mes + "-01",
+      valor_pago: valor,
+      observacao: $("obs-repasse").value.trim() || null,
+      atualizado_por: usuario.id,
+      atualizado_em: new Date().toISOString()
+    }, { onConflict: "mes" });
+
+    if (error) throw error;
+    mostrar("msg-repasse", "Repasse mensal salvo.", "success");
+    await consultar();
+  }
+
+  async function consultar() {
+    const botao = $("buscar");
+    botao.disabled = true;
+    $("historico").textContent = "Consultando dados...";
+    mostrar("mensagem", "");
+
+    try {
+      const { inicio, fim } = intervalo();
+      let consultaAg = db.from("agendamentos")
+        .select("id,barbeiro_id,servico,preco,data_agendamento,horario,status")
+        .eq("status", "concluido")
+        .gte("data_agendamento", inicio)
+        .lt("data_agendamento", fim)
+        .order("data_agendamento", { ascending: false })
+        .order("horario", { ascending: false });
+
+      let consultaAv = db.from("atendimentos_avulsos")
+        .select("id,barbeiro_id,servico,valor,data_atendimento,criado_em")
+        .gte("data_atendimento", inicio)
+        .lt("data_atendimento", fim)
+        .order("data_atendimento", { ascending: false });
+
+      if (perfil.papel === "barbeiro") {
+        consultaAg = consultaAg.eq("barbeiro_id", perfil.barbeiro_id);
+        consultaAv = consultaAv.eq("barbeiro_id", perfil.barbeiro_id);
+      }
+
+      const [agRes, avRes] = await Promise.all([consultaAg, consultaAv]);
+      if (agRes.error) throw agRes.error;
+      if (avRes.error) throw avRes.error;
+
+      const agendamentos = agRes.data || [];
+      const avulsos = avRes.data || [];
+
+      const itensAg = agendamentos.map(a => ({
+        tipo: "Agendamento",
+        id: a.id,
+        barbeiro_id: a.barbeiro_id,
+        servico: a.servico || "Serviço",
+        data: a.data_agendamento,
+        horario: a.horario,
+        valor: Number(a.preco || 0)
+      }));
+
+      const itensAv = avulsos.map(a => ({
+        tipo: "Corte avulso",
+        id: a.id,
+        barbeiro_id: a.barbeiro_id,
+        servico: a.servico || "Serviço",
+        data: a.data_atendimento,
+        horario: a.criado_em ? a.criado_em.slice(11, 16) : "",
+        valor: Number(a.valor || 0)
+      }));
+
+      const itens = [...itensAg, ...itensAv].sort((a,b) =>
+        (b.data + (b.horario || "")).localeCompare(a.data + (a.horario || ""))
+      );
+
+      const total = itens.reduce((s, i) => s + i.valor, 0);
+      $("faturamento").textContent = moeda(total);
+      $("quantidade").textContent = String(itens.length);
+      $("ticket").textContent = moeda(itens.length ? total / itens.length : 0);
+
+      const itensGustavo = itens.filter(i => i.barbeiro_id === GUSTAVO_ID);
+      const comissao = itensGustavo.reduce((s, i) => s + i.valor, 0) * 0.5;
+      $("comissao").textContent = moeda(comissao);
+
+      if (perfil.papel === "dono") {
+        const mes = inicio.slice(0, 7) + "-01";
+        $("mes-repasse").value = inicio.slice(0, 7);
+        const repassado = await buscarRepasses(mes);
+        $("repassado").textContent = moeda(repassado);
+        $("pendente").textContent = moeda(Math.max(0, comissao - repassado));
+      }
+
+      $("historico").replaceChildren();
+      if (!itens.length) {
+        const p = document.createElement("p");
+        p.textContent = "Nenhum atendimento concluído encontrado neste período.";
+        $("historico").appendChild(p);
+      } else {
+        itens.forEach(item => {
+          const div = document.createElement("article");
+          div.className = "history-item";
+          const nomeBarbeiro = barbeiros.find(b => b.id === item.barbeiro_id)?.nome || "Barbeiro";
+          div.innerHTML = `
+            <strong>${escapar(item.servico)} · ${moeda(item.valor)}</strong>
+            <span>${escapar(item.tipo)} · ${escapar(dataBonita(item.data))} ${escapar(item.horario || "")}</span><br>
+            <span>Profissional: ${escapar(nomeBarbeiro)}</span>
+          `;
+          $("historico").appendChild(div);
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      mostrar("mensagem", e.message || "Não foi possível consultar o financeiro. Confira as permissões do Supabase.", "error");
+      $("historico").textContent = "Não foi possível carregar o histórico.";
+    } finally {
+      botao.disabled = false;
+    }
+  }
+
+  async function iniciar() {
+    try {
+      const { data: sessionData, error: sessionError } = await db.auth.getSession();
+      if (sessionError) throw sessionError;
+      const usuario = sessionData.session?.user;
+      if (!usuario) {
+        window.location.replace("./login.html");
+        return;
+      }
+
+      const { data, error } = await db.from("perfis")
+        .select("id,nome,papel,barbeiro_id")
+        .eq("id", usuario.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data || !["dono","barbeiro"].includes(data.papel)) {
+        throw new Error("Perfil sem permissão para acessar o financeiro.");
+      }
+      perfil = data;
+
+      $("titulo").textContent = data.papel === "dono"
+        ? "Financeiro da barbearia"
+        : "Meu faturamento";
+      $("subtitulo").textContent = data.papel === "dono"
+        ? "Acompanhe os atendimentos concluídos, a comissão e os repasses do Gustavo."
+        : "Confira os atendimentos concluídos vinculados ao seu perfil.";
+
+      await carregarListas();
+
+      $("data-ref").value = hojeLocal();
+      $("data-avulso").value = hojeLocal();
+      $("mes-repasse").value = hojeLocal().slice(0,7);
+
+      await consultar();
+    } catch (e) {
+      console.error(e);
+      mostrar("mensagem", e.message || "Erro ao abrir o financeiro.", "error");
+      $("titulo").textContent = "Não foi possível abrir o financeiro";
+    }
+  }
+
+  $("periodo").addEventListener("change", () => {
+    $("data-ref").focus();
+  });
+  $("buscar").addEventListener("click", consultar);
+  $("form-avulso").addEventListener("submit", registrarAvulso);
+  $("salvar-repasse").addEventListener("click", async () => {
+    const b = $("salvar-repasse");
+    b.disabled = true;
+    try {
+      await salvarRepasse();
+    } catch (e) {
+      console.error(e);
+      mostrar("msg-repasse", e.message || "Não foi possível salvar o repasse.", "error");
+    } finally {
+      b.disabled = false;
+    }
+  });
+  $("sair").addEventListener("click", async () => {
+    const { error } = await db.auth.signOut();
+    if (error) {
+      alert("Não foi possível sair.");
+      return;
+    }
+    window.location.replace("./login.html");
+  });
+
+  iniciar();
+})();
+</script>
+</body>
+</html>

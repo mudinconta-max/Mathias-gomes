@@ -1,0 +1,740 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b0b">
+  <title>Minha agenda | Barbearia Mathias Gomes</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --fundo: #0b0b0b;
+      --cartao: #151515;
+      --borda: #303030;
+      --dourado: #d4a45b;
+      --texto: #f5f5f5;
+      --suave: #aaa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--fundo);
+      color: var(--texto);
+      font-family: "DM Sans", sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 20px 5%;
+      background: #121212;
+      border-bottom: 1px solid #292929;
+    }
+
+    header h1 {
+      margin: 0;
+      font: 700 22px "Playfair Display", serif;
+    }
+
+    header h1 span { color: var(--dourado); }
+
+    button, input, select { font: inherit; }
+
+    button, .botao {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 10px 14px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      background: #202020;
+      color: white;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    button:hover, .botao:hover { border-color: var(--dourado); }
+    button:disabled { opacity: .55; cursor: wait; }
+
+    .principal {
+      background: var(--dourado);
+      color: #111;
+      border-color: var(--dourado);
+      font-weight: 700;
+    }
+
+    .principal:hover {
+      background: #e4b96f;
+      border-color: #e4b96f;
+    }
+
+    main {
+      width: min(1200px, 92%);
+      margin: 38px auto;
+    }
+
+    .topo { margin-bottom: 26px; }
+
+    .topo h2 {
+      margin: 0 0 8px;
+      font: 700 clamp(27px, 5vw, 38px) "Playfair Display", serif;
+    }
+
+    .topo p, .descricao {
+      color: var(--suave);
+      line-height: 1.6;
+    }
+
+    .filtros {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(150px, 1fr)) auto;
+      gap: 14px;
+      align-items: end;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: var(--cartao);
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+    }
+
+    .campo { display: grid; gap: 7px; }
+    .campo label { color: #ddd; font-size: 13px; }
+
+    .campo input, .campo select {
+      width: 100%;
+      min-width: 0;
+      padding: 12px;
+      background: #0d0d0d;
+      color: white;
+      border: 1px solid #393939;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .campo input:focus, .campo select:focus {
+      border-color: var(--dourado);
+    }
+
+    .resumo {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .indicador {
+      padding: 18px;
+      background: var(--cartao);
+      border: 1px solid var(--borda);
+      border-radius: 12px;
+    }
+
+    .indicador span { color: var(--suave); font-size: 13px; }
+
+    .indicador strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 26px;
+    }
+
+    .painel {
+      overflow: hidden;
+      background: var(--cartao);
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+    }
+
+    .painel-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 20px;
+      border-bottom: 1px solid var(--borda);
+    }
+
+    .painel-topo h3 { margin: 0; }
+
+    .lista {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .reserva {
+      padding: 18px;
+      background: #101010;
+      border: 1px solid #333;
+      border-radius: 10px;
+    }
+
+    .reserva-cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .reserva h4 { margin: 0 0 7px; font-size: 17px; }
+
+    .detalhes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 16px;
+      margin: 16px 0;
+      color: #ccc;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .detalhes b { color: #fff; }
+
+    .status {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 20px;
+      background: #292929;
+      color: #ddd;
+      font-size: 12px;
+    }
+
+    .status.reservado { color: #f2cc85; background: #332819; }
+    .status.em_atendimento { color: #a7d4ff; background: #172a3a; }
+    .status.concluido { color: #9cdaa7; background: #193020; }
+    .status.cancelado, .status.faltou { color: #ffaaaa; background: #351b1b; }
+
+    .acoes {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 14px;
+      border-top: 1px solid #292929;
+    }
+
+    .acoes label { color: var(--suave); font-size: 13px; }
+
+    .acoes select {
+      flex: 1;
+      min-width: 170px;
+      padding: 10px;
+      background: #0d0d0d;
+      color: white;
+      border: 1px solid #393939;
+      border-radius: 8px;
+    }
+
+    .mensagem {
+      padding: 22px;
+      color: var(--suave);
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .mensagem.erro { color: #ff9999; }
+    .mensagem.sucesso { color: #9cdaa7; }
+
+    footer {
+      padding: 24px 5%;
+      color: #777;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 700px) {
+      header { padding: 17px 4%; }
+      header h1 { font-size: 18px; }
+      main { margin: 26px auto; }
+      .filtros { grid-template-columns: 1fr; }
+      .resumo { gap: 8px; }
+      .indicador { padding: 12px; }
+      .indicador strong { font-size: 22px; }
+      .detalhes { grid-template-columns: 1fr; }
+      .painel-topo { padding: 16px; }
+      .lista { padding: 10px; }
+      .reserva { padding: 14px; }
+      .acoes select { min-width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1 id="titulo-painel">Barbearia <span>•</span> Agendamentos</h1>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="botao" href="./painel.html">Voltar ao painel</a>
+      <button id="sair" type="button">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="topo">
+      <h2 id="titulo">Carregando agenda...</h2>
+      <p id="subtitulo">Verificando seu acesso ao sistema.</p>
+    </section>
+
+    <section class="filtros">
+      <div class="campo">
+        <label for="filtro-data">Data do atendimento</label>
+        <input id="filtro-data" type="date">
+      </div>
+
+      <div class="campo">
+        <label for="filtro-status">Situação</label>
+        <select id="filtro-status">
+          <option value="ativos">Reservados e em atendimento</option>
+          <option value="todos">Todos os status</option>
+          <option value="reservado">Reservado</option>
+          <option value="em_atendimento">Em atendimento</option>
+          <option value="concluido">Concluído</option>
+          <option value="cancelado">Cancelado</option>
+          <option value="faltou">Faltou</option>
+        </select>
+      </div>
+
+      <div class="campo" id="campo-filtro-barbeiro" hidden>
+        <label for="filtro-barbeiro">Filtrar por barbeiro</label>
+        <select id="filtro-barbeiro">
+          <option value="todos">Todos os barbeiros</option>
+        </select>
+      </div>
+
+      <button class="principal" id="filtrar" type="button">Buscar</button>
+    </section>
+
+    <section class="resumo">
+      <article class="indicador">
+        <span>Reservas encontradas</span>
+        <strong id="total-reservas">—</strong>
+      </article>
+      <article class="indicador">
+        <span>Reservados</span>
+        <strong id="total-reservados">—</strong>
+      </article>
+      <article class="indicador">
+        <span>Em atendimento</span>
+        <strong id="total-atendimento">—</strong>
+      </article>
+    </section>
+
+    <section class="painel">
+      <div class="painel-topo">
+        <h3 id="titulo-lista">Lista de agendamentos</h3>
+        <button id="atualizar" type="button">Atualizar lista</button>
+      </div>
+
+      <div id="lista" class="lista" aria-live="polite">
+        <p class="mensagem">Carregando...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>Barbearia Mathias Gomes · Painel administrativo</footer>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const SUPABASE_URL = "https://oomruxmmdlmfcwenxnnh.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_3qQbBUh6Mp5e3No473Weew_lp-V5GCh";
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const el = id => document.getElementById(id);
+    const titulo = el("titulo");
+    const subtitulo = el("subtitulo");
+    const lista = el("lista");
+
+    let perfil = null;
+    let carregando = false;
+    let barbeirosDisponiveis = [];
+
+    const statusPermitidos = [
+      "reservado",
+      "em_atendimento",
+      "concluido",
+      "cancelado",
+      "faltou"
+    ];
+
+    const nomesStatus = {
+      reservado: "Reservado",
+      em_atendimento: "Em atendimento",
+      concluido: "Concluído",
+      cancelado: "Cancelado",
+      faltou: "Faltou"
+    };
+
+    function hojeLocal() {
+      const agora = new Date();
+      const deslocamento = agora.getTimezoneOffset() * 60000;
+      return new Date(agora.getTime() - deslocamento)
+        .toISOString().slice(0, 10);
+    }
+
+    function escapar(texto) {
+      return String(texto ?? "").replace(/[&<>"']/g, caractere => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[caractere]);
+    }
+
+    function dataBonita(data) {
+      if (!data) return "—";
+      const partes = data.slice(0, 10).split("-");
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function horaBonita(hora) {
+      return hora ? String(hora).slice(0, 5) : "—";
+    }
+
+    function mostrarMensagem(texto, tipo = "") {
+      lista.replaceChildren();
+      const p = document.createElement("p");
+      p.className = "mensagem" + (tipo ? " " + tipo : "");
+      p.textContent = texto;
+      lista.appendChild(p);
+    }
+
+    async function carregarListaBarbeiros() {
+      const seletor = el("filtro-barbeiro");
+
+      const { data, error } = await db
+        .from("barbeiros")
+        .select("id, nome")
+        .order("nome", { ascending: true });
+
+      if (error) throw error;
+
+      barbeirosDisponiveis = data || [];
+      seletor.replaceChildren();
+
+      const todos = document.createElement("option");
+      todos.value = "todos";
+      todos.textContent = "Todos os barbeiros";
+      seletor.appendChild(todos);
+
+      barbeirosDisponiveis.forEach(barbeiro => {
+        const opcao = document.createElement("option");
+        opcao.value = barbeiro.id;
+        opcao.textContent = barbeiro.nome || "Barbeiro sem nome";
+        seletor.appendChild(opcao);
+      });
+    }
+
+    function criarCard(reserva, nomeBarbeiro) {
+      const artigo = document.createElement("article");
+      artigo.className = "reserva";
+
+      const status = statusPermitidos.includes(reserva.status)
+        ? reserva.status : "reservado";
+
+      const podeAlterar = status !== "cancelado";
+
+      artigo.innerHTML = `
+        <div class="reserva-cabecalho">
+          <div>
+            <h4>${escapar(reserva.nome_cliente || "Cliente sem nome")}</h4>
+            <span class="status ${escapar(status)}">${escapar(nomesStatus[status])}</span>
+          </div>
+          <strong>${escapar(horaBonita(reserva.horario))}</strong>
+        </div>
+
+        <div class="detalhes">
+          <div><b>Serviço:</b> ${escapar(reserva.servico || "Não informado")}</div>
+          <div><b>Data:</b> ${escapar(dataBonita(reserva.data_agendamento))}</div>
+          <div><b>Barbeiro:</b> ${escapar(nomeBarbeiro || "Não identificado")}</div>
+          <div><b>Duração:</b> ${escapar(reserva.duracao_minutos ?? "—")} min</div>
+          <div><b>Telefone:</b> ${escapar(reserva.telefone_cliente || "Não informado")}</div>
+          <div><b>Código:</b> ${escapar(reserva.id)}</div>
+        </div>
+
+        ${podeAlterar ? `
+          <div class="acoes">
+            <label for="status-${escapar(reserva.id)}">Atualizar situação:</label>
+            <select id="status-${escapar(reserva.id)}">
+              ${statusPermitidos.map(s =>
+                `<option value="${s}" ${s === status ? "selected" : ""}>${escapar(nomesStatus[s])}</option>`
+              ).join("")}
+            </select>
+            <button type="button" class="salvar-status" data-id="${escapar(reserva.id)}">Salvar status</button>
+          </div>
+        ` : ""}
+      `;
+
+      const botao = artigo.querySelector(".salvar-status");
+      if (botao) {
+        botao.addEventListener("click", () => atualizarStatus(reserva.id, botao));
+      }
+
+      return artigo;
+    }
+
+    async function atualizarStatus(id, botao) {
+      const seletor = el("status-" + id);
+      const novoStatus = seletor?.value;
+
+      if (!statusPermitidos.includes(novoStatus)) {
+        alert("Selecione um status válido.");
+        return;
+      }
+
+      if (!confirm(`Deseja alterar o status deste agendamento para "${nomesStatus[novoStatus]}"?`)) {
+        return;
+      }
+
+      botao.disabled = true;
+      botao.textContent = "Salvando...";
+
+      try {
+        const { data, error } = await db
+          .from("agendamentos")
+          .update({ status: novoStatus })
+          .eq("id", id)
+          .select("id");
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          throw new Error("Nenhum registro foi alterado. Verifique as permissões de atualização no Supabase.");
+        }
+
+        await carregarAgendamentos();
+      } catch (erro) {
+        console.error("Erro ao atualizar agendamento:", erro);
+        alert(
+          erro.message ||
+          "Não foi possível atualizar o status. Verifique as políticas de UPDATE no Supabase."
+        );
+        botao.disabled = false;
+        botao.textContent = "Salvar status";
+      }
+    }
+
+    async function carregarAgendamentos() {
+      if (carregando || !perfil) return;
+
+      if (!el("filtro-data").value) {
+        mostrarMensagem("Selecione uma data para consultar os agendamentos.");
+        return;
+      }
+
+      carregando = true;
+      el("filtrar").disabled = true;
+      el("atualizar").disabled = true;
+      mostrarMensagem("Buscando agendamentos...");
+
+      try {
+        let consulta = db
+          .from("agendamentos")
+          .select("id, barbeiro_id, nome_cliente, telefone_cliente, servico, data_agendamento, horario, duracao_minutos, status")
+          .eq("data_agendamento", el("filtro-data").value)
+          .order("horario", { ascending: true });
+
+        if (perfil.papel === "barbeiro") {
+          if (!perfil.barbeiro_id) {
+            throw new Error(
+              "Seu perfil não está vinculado a um barbeiro. Peça ao dono para verificar seu cadastro."
+            );
+          }
+
+          // Mantém o barbeiro limitado à própria agenda na interface.
+          consulta = consulta.eq("barbeiro_id", perfil.barbeiro_id);
+        } else if (perfil.papel === "dono") {
+          const barbeiroSelecionado = el("filtro-barbeiro").value;
+
+          if (barbeiroSelecionado && barbeiroSelecionado !== "todos") {
+            consulta = consulta.eq("barbeiro_id", barbeiroSelecionado);
+          }
+        }
+
+        const filtroStatus = el("filtro-status").value;
+
+        if (filtroStatus === "ativos") {
+          consulta = consulta.in("status", ["reservado", "em_atendimento"]);
+        } else if (filtroStatus !== "todos") {
+          consulta = consulta.eq("status", filtroStatus);
+        }
+
+        const { data, error } = await consulta;
+        if (error) throw error;
+
+        const reservas = data || [];
+
+        el("total-reservas").textContent = reservas.length;
+        el("total-reservados").textContent =
+          reservas.filter(r => r.status === "reservado").length;
+        el("total-atendimento").textContent =
+          reservas.filter(r => r.status === "em_atendimento").length;
+
+        if (!reservas.length) {
+          mostrarMensagem("Nenhum agendamento encontrado para esta data, barbeiro e situação.");
+          return;
+        }
+
+        const ids = [...new Set(reservas.map(r => r.barbeiro_id).filter(Boolean))];
+        const nomes = {};
+
+        barbeirosDisponiveis.forEach(b => {
+          nomes[b.id] = b.nome;
+        });
+
+        // Busca nomes usados nos cartões, caso a lista local não os contenha.
+        if (ids.some(id => !nomes[id])) {
+          const { data: barbeiros, error: erroBarbeiros } = await db
+            .from("barbeiros")
+            .select("id, nome")
+            .in("id", ids);
+
+          if (erroBarbeiros) {
+            console.warn("Não foi possível carregar os nomes dos barbeiros:", erroBarbeiros);
+          } else {
+            (barbeiros || []).forEach(b => {
+              nomes[b.id] = b.nome;
+            });
+          }
+        }
+
+        lista.replaceChildren();
+
+        reservas.forEach(reserva => {
+          lista.appendChild(criarCard(reserva, nomes[reserva.barbeiro_id]));
+        });
+
+      } catch (erro) {
+        console.error("Erro ao carregar agendamentos:", erro);
+
+        el("total-reservas").textContent = "—";
+        el("total-reservados").textContent = "—";
+        el("total-atendimento").textContent = "—";
+
+        mostrarMensagem(
+          erro.message ||
+          "Não foi possível carregar os agendamentos. Verifique as permissões RLS e as colunas da tabela.",
+          "erro"
+        );
+      } finally {
+        carregando = false;
+        el("filtrar").disabled = false;
+        el("atualizar").disabled = false;
+      }
+    }
+
+    async function iniciar() {
+      try {
+        const { data: sessaoData, error: erroSessao } =
+          await db.auth.getSession();
+
+        if (erroSessao) throw erroSessao;
+
+        const usuario = sessaoData.session?.user;
+
+        if (!usuario) {
+          window.location.replace("./login.html");
+          return;
+        }
+
+        const { data: perfilData, error } = await db
+          .from("perfis")
+          .select("nome, papel, barbeiro_id")
+          .eq("id", usuario.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!perfilData) {
+          throw new Error("Perfil não encontrado. Confira seu cadastro no painel.");
+        }
+
+        if (!["dono", "barbeiro"].includes(perfilData.papel)) {
+          throw new Error("Seu perfil não tem permissão para acessar esta área.");
+        }
+
+        perfil = perfilData;
+
+        const nomeUsuario = perfil.nome || (
+          perfil.papel === "dono" ? "Mathias Gomes" : "Barbeiro"
+        );
+
+        el("titulo-painel").innerHTML = perfil.papel === "dono"
+          ? 'Mathias Gomes <span>•</span> Agendamentos'
+          : `${escapar(nomeUsuario)} <span>•</span> Minha agenda`;
+
+        titulo.textContent = perfil.papel === "dono"
+          ? "Gerenciar agendamentos"
+          : "Minha agenda";
+
+        subtitulo.textContent = perfil.papel === "dono"
+          ? "Consulte as reservas de todos os barbeiros e filtre por profissional."
+          : "Consulte e acompanhe os atendimentos vinculados à sua agenda.";
+
+        el("titulo-lista").textContent = perfil.papel === "dono"
+          ? "Agendamentos"
+          : "Meus atendimentos";
+
+        // O filtro de barbeiro só aparece para o dono.
+        if (perfil.papel === "dono") {
+          el("campo-filtro-barbeiro").hidden = false;
+          await carregarListaBarbeiros();
+        } else {
+          el("campo-filtro-barbeiro").hidden = true;
+        }
+
+        el("filtro-data").value = hojeLocal();
+
+        await carregarAgendamentos();
+
+      } catch (erro) {
+        console.error("Erro ao iniciar a agenda:", erro);
+        titulo.textContent = "Não foi possível abrir a agenda";
+        subtitulo.textContent = "Confira a mensagem abaixo.";
+        mostrarMensagem(
+          erro.message || "Erro ao validar o acesso.",
+          "erro"
+        );
+      }
+    }
+
+    el("filtrar").addEventListener("click", carregarAgendamentos);
+    el("atualizar").addEventListener("click", carregarAgendamentos);
+    el("filtro-status").addEventListener("change", carregarAgendamentos);
+    el("filtro-barbeiro").addEventListener("change", carregarAgendamentos);
+
+    el("sair").addEventListener("click", async () => {
+      const { error } = await db.auth.signOut();
+
+      if (error) {
+        alert("Não foi possível sair. Tente novamente.");
+        console.error(error);
+        return;
+      }
+
+      window.location.replace("./login.html");
+    });
+
+    iniciar();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0b0b">
+    <title>Login | Barbearia Mathias Gomes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: #0b0b0b;
+            color: #fff;
+            font-family: "DM Sans", sans-serif;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 36px;
+            background: #151515;
+            border: 1px solid #303030;
+            border-radius: 18px;
+            box-shadow: 0 20px 70px #0008;
+        }
+
+        .marca {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .marca h1 {
+            margin: 0 0 8px;
+            font: 800 30px "Playfair Display", serif;
+        }
+
+        .marca p {
+            color: #aaa;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            color: #fff;
+            background: #0b0b0b;
+            border: 1px solid #393939;
+            border-radius: 9px;
+            outline: none;
+            font: inherit;
+        }
+
+        input:focus {
+            border-color: #d4a45b;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 15px;
+            border: 0;
+            border-radius: 9px;
+            background: #d4a45b;
+            color: #151515;
+            font: 700 15px "DM Sans", sans-serif;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: wait;
+        }
+
+        #mensagem {
+            margin: 16px 0 0;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .erro {
+            color: #ff7777;
+        }
+
+        .sucesso {
+            color: #83d9a0;
+        }
+
+        .voltar {
+            display: block;
+            margin-top: 24px;
+            color: #aaa;
+            font-size: 13px;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .voltar:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="login-card">
+        <header class="marca">
+            <h1>Mathias Gomes</h1>
+            <p>Painel administrativo da barbearia</p>
+        </header>
+
+        <form id="form-login">
+            <label for="email">E-mail</label>
+            <input
+                id="email"
+                type="email"
+                autocomplete="username"
+                placeholder="Digite seu e-mail"
+                required
+            >
+
+            <label for="senha">Senha</label>
+            <input
+                id="senha"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Digite sua senha"
+                required
+            >
+
+            <button id="botao-login" type="submit">
+                Entrar no painel
+            </button>
+
+            <p id="mensagem" role="status" aria-live="polite"></p>
+        </form>
+
+        <a class="voltar" href="./index.html">
+            Voltar para o site de agendamento
+        </a>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        const SUPABASE_URL =
+            "https://oomruxmmdlmfcwenxnnh.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_3qQbBUh6Mp5e3No473Weew_lp-V5GCh";
+
+        const supabaseClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+        const form = document.getElementById("form-login");
+        const mensagem = document.getElementById("mensagem");
+        const botao = document.getElementById("botao-login");
+
+        form.addEventListener("submit", async (evento) => {
+            evento.preventDefault();
+
+            mensagem.textContent = "";
+            mensagem.className = "";
+            botao.disabled = true;
+            botao.textContent = "Verificando acesso...";
+
+            const email = document.getElementById("email").value.trim();
+            const senha = document.getElementById("senha").value;
+
+            try {
+                const { data, error } =
+                    await supabaseClient.auth.signInWithPassword({
+                        email,
+                        password: senha
+                    });
+
+                if (error) {
+                    throw error;
+                }
+
+                const { data: perfil, error: erroPerfil } =
+                    await supabaseClient
+                        .from("perfis")
+                        .select("nome, papel, barbeiro_id")
+                        .eq("id", data.user.id)
+                        .maybeSingle();
+
+                if (erroPerfil || !perfil) {
+                    await supabaseClient.auth.signOut();
+                    throw new Error(
+                        "Seu usuário não possui um perfil administrativo cadastrado."
+                    );
+                }
+
+                if (!["dono", "barbeiro"].includes(perfil.papel)) {
+                    await supabaseClient.auth.signOut();
+                    throw new Error("Seu perfil não tem permissão para acessar o painel.");
+                }
+
+                if (
+                    perfil.papel === "barbeiro" &&
+                    !perfil.barbeiro_id
+                ) {
+                    await supabaseClient.auth.signOut();
+                    throw new Error("Seu perfil de barbeiro não está vinculado a um barbeiro.");
+                }
+
+                mensagem.textContent = "Login realizado! Abrindo o painel...";
+                mensagem.className = "sucesso";
+
+                window.location.replace("./painel.html");
+
+            } catch (erro) {
+                console.error("Falha no login:", erro);
+                mensagem.textContent =
+                    erro.message === "Invalid login credentials"
+                        ? "E-mail ou senha incorretos."
+                        : erro.message || "Não foi possível entrar. Tente novamente.";
+
+                mensagem.className = "erro";
+                botao.disabled = false;
+                botao.textContent = "Entrar no painel";
+            }
+        });
+    </script>
+</body>
+</html>

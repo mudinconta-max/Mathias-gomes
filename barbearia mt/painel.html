@@ -1,0 +1,707 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0b0b">
+    <title>Painel | Barbearia Mathias Gomes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #0b0b0b;
+            color: #f5f5f5;
+            font-family: "DM Sans", sans-serif;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 6%;
+            border-bottom: 1px solid #292929;
+            background: #121212;
+        }
+
+        header h1 {
+            margin: 0;
+            font: 700 22px "Playfair Display", serif;
+        }
+
+        header span { color: #d4a45b; }
+
+        button { font: inherit; }
+
+        button {
+            padding: 11px 16px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #202020;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover { border-color: #d4a45b; }
+
+        button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        main {
+            width: min(1100px, 90%);
+            margin: 42px auto;
+        }
+
+        .boas-vindas { margin-bottom: 28px; }
+
+        .boas-vindas h2 {
+            margin: 0 0 8px;
+            font: 700 clamp(26px, 5vw, 38px) "Playfair Display", serif;
+        }
+
+        .boas-vindas p, .descricao {
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .cartoes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .cartao {
+            padding: 24px;
+            background: #151515;
+            border: 1px solid #303030;
+            border-radius: 14px;
+        }
+
+        .cartao .icone {
+            color: #d4a45b;
+            font-size: 24px;
+        }
+
+        .cartao h3 { margin-bottom: 8px; }
+
+        .cartao p {
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .cartao .abrir {
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        button:focus-visible {
+            outline: 2px solid #d4a45b;
+            outline-offset: 3px;
+        }
+
+        .status {
+            margin-top: 24px;
+            padding: 18px;
+            background: #151515;
+            border: 1px solid #303030;
+            border-radius: 12px;
+            color: #bbb;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+        }
+
+        #mensagem { color: #d4a45b; }
+
+        .secao-servicos {
+            margin-top: 28px;
+            padding: 24px;
+            background: #151515;
+            border: 1px solid #303030;
+            border-radius: 14px;
+        }
+
+        .secao-servicos[hidden] { display: none; }
+
+        .topo-secao {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .topo-secao h3 {
+            margin: 0;
+            font: 700 24px "Playfair Display", serif;
+        }
+
+        .form-servico {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 14px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .campo label {
+            color: #ddd;
+            font-size: 14px;
+        }
+
+        .campo input {
+            width: 100%;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #393939;
+            border-radius: 8px;
+            background: #0d0d0d;
+            color: #fff;
+            outline: none;
+        }
+
+        .campo input:focus { border-color: #d4a45b; }
+
+        .acoes-formulario {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .destaque {
+            background: #d4a45b;
+            color: #111;
+            border-color: #d4a45b;
+            font-weight: 700;
+        }
+
+        .destaque:hover {
+            background: #e4b96f;
+            border-color: #e4b96f;
+        }
+
+        .lista-servicos {
+            display: grid;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .item-servico {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 16px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            background: #101010;
+        }
+
+        .item-servico h4 { margin: 0 0 6px; }
+
+        .item-servico p {
+            margin: 0;
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .acoes-servico {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .estado {
+            display: inline-block;
+            margin-top: 8px;
+            color: #9cdaa7;
+            font-size: 12px;
+        }
+
+        .estado.inativo { color: #e4a0a0; }
+
+        .mensagem-servicos {
+            min-height: 24px;
+            margin-top: 14px;
+            color: #d4a45b;
+            overflow-wrap: anywhere;
+        }
+
+        .mensagem-servicos.erro { color: #ff9999; }
+        .mensagem-servicos.sucesso { color: #9cdaa7; }
+
+        .aviso {
+            color: #aaa;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 700px) {
+            header { padding: 18px 5%; }
+            header h1 { font-size: 18px; }
+            main { margin-top: 30px; }
+            .form-servico { grid-template-columns: 1fr; }
+            .secao-servicos { padding: 18px; }
+            .item-servico { align-items: flex-start; }
+            .acoes-servico { width: 100%; }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Mathias Gomes <span>•</span> Painel</h1>
+        <button id="sair" type="button">Sair</button>
+    </header>
+
+    <main>
+        <section class="boas-vindas">
+            <h2 id="titulo">Carregando seu painel...</h2>
+            <p id="subtitulo">Verificando seu acesso.</p>
+        </section>
+
+        <section class="cartoes" id="cartoes" hidden></section>
+
+        <section class="secao-servicos" id="secao-servicos" hidden>
+            <div class="topo-secao">
+                <div>
+                    <h3>Gerenciar serviços</h3>
+                    <p class="descricao">Cadastre cortes, altere preços e configure o tempo de atendimento.</p>
+                </div>
+                <button type="button" id="novo-servico">+ Novo serviço</button>
+            </div>
+
+            <form id="form-servico">
+                <input type="hidden" id="servico-id">
+
+                <div class="form-servico">
+                    <div class="campo">
+                        <label for="servico-nome">Nome do serviço</label>
+                        <input id="servico-nome" maxlength="100" required placeholder="Ex.: Corte navalhado">
+                    </div>
+
+                    <div class="campo">
+                        <label for="servico-preco">Preço (R$)</label>
+                        <input id="servico-preco" type="number" min="0" max="99999.99" step="0.01" required placeholder="35,00">
+                    </div>
+
+                    <div class="campo">
+                        <label for="servico-duracao">Duração (minutos)</label>
+                        <input id="servico-duracao" type="number" min="1" max="600" step="1" required placeholder="40">
+                    </div>
+                </div>
+
+                <div class="acoes-formulario">
+                    <button type="submit" class="destaque" id="salvar-servico">Adicionar serviço</button>
+                    <button type="button" id="cancelar-edicao" hidden>Cancelar edição</button>
+                </div>
+            </form>
+
+            <p class="aviso">
+                Desativar um serviço impede novas reservas desse serviço. Agendamentos existentes não são apagados.
+            </p>
+
+            <div id="lista-servicos" class="lista-servicos"></div>
+            <p id="mensagem-servicos" class="mensagem-servicos" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="status">
+            <strong>Status do sistema</strong>
+            <p id="mensagem">Conectando ao Supabase...</p>
+        </section>
+    </main>
+
+    <script>
+    (() => {
+        "use strict";
+
+        const SUPABASE_URL = "https://oomruxmmdlmfcwenxnnh.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_3qQbBUh6Mp5e3No473Weew_lp-V5GCh";
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const titulo = document.getElementById("titulo");
+        const subtitulo = document.getElementById("subtitulo");
+        const cartoes = document.getElementById("cartoes");
+        const mensagem = document.getElementById("mensagem");
+
+        const secaoServicos = document.getElementById("secao-servicos");
+        const formServico = document.getElementById("form-servico");
+        const campoId = document.getElementById("servico-id");
+        const campoNome = document.getElementById("servico-nome");
+        const campoPreco = document.getElementById("servico-preco");
+        const campoDuracao = document.getElementById("servico-duracao");
+        const listaServicos = document.getElementById("lista-servicos");
+        const mensagemServicos = document.getElementById("mensagem-servicos");
+        const botaoSalvar = document.getElementById("salvar-servico");
+        const botaoCancelarEdicao = document.getElementById("cancelar-edicao");
+
+        let perfilAtual = null;
+        let usuarioAtual = null;
+        let enviandoServico = false;
+
+        function mostrarMensagemServico(texto, tipo = "") {
+            mensagemServicos.textContent = texto;
+            mensagemServicos.className = "mensagem-servicos";
+            if (tipo) mensagemServicos.classList.add(tipo);
+        }
+
+        function criarCartao(icone, nome, descricao, acao, textoBotao = "Abrir") {
+            const artigo = document.createElement("article");
+            artigo.className = "cartao";
+
+            const simbolo = document.createElement("div");
+            simbolo.className = "icone";
+            simbolo.textContent = icone;
+
+            const tituloCartao = document.createElement("h3");
+            tituloCartao.textContent = nome;
+
+            const texto = document.createElement("p");
+            texto.textContent = descricao;
+
+            artigo.append(simbolo, tituloCartao, texto);
+
+            if (typeof acao === "function") {
+                const botao = document.createElement("button");
+                botao.type = "button";
+                botao.className = "abrir";
+                botao.textContent = textoBotao;
+                botao.addEventListener("click", acao);
+                artigo.appendChild(botao);
+            }
+
+            cartoes.appendChild(artigo);
+        }
+
+        function abrirAgendamentos() {
+            window.location.href = "./agendamentos.html";
+        }
+
+        function abrirFinanceiro() {
+            window.location.href = "./financeiro.html";
+        }
+
+        function formatarPreco(preco) {
+            return Number(preco).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+        }
+
+        function limparFormulario() {
+            formServico.reset();
+            campoId.value = "";
+            botaoSalvar.textContent = "Adicionar serviço";
+            botaoCancelarEdicao.hidden = true;
+        }
+
+        function abrirGerenciamento() {
+            secaoServicos.hidden = false;
+            secaoServicos.scrollIntoView({ behavior: "smooth", block: "start" });
+            carregarServicos();
+        }
+
+        async function carregarServicos() {
+            if (perfilAtual?.papel !== "dono") return;
+
+            listaServicos.replaceChildren();
+            mostrarMensagemServico("Carregando serviços...");
+
+            const { data, error } = await client
+                .from("servicos")
+                .select("id, nome, preco, duracao_minutos, ativo")
+                .order("nome", { ascending: true });
+
+            if (error) {
+                console.error("Erro ao carregar serviços:", error);
+                mostrarMensagemServico(
+                    "Não foi possível carregar os serviços. Confira as permissões da tabela servicos no Supabase.",
+                    "erro"
+                );
+                return;
+            }
+
+            listaServicos.replaceChildren();
+
+            if (!data || data.length === 0) {
+                mostrarMensagemServico("Nenhum serviço cadastrado ainda.");
+                return;
+            }
+
+            data.forEach(servico => {
+                const item = document.createElement("article");
+                item.className = "item-servico";
+
+                const informacoes = document.createElement("div");
+                const nome = document.createElement("h4");
+                nome.textContent = servico.nome;
+
+                const detalhes = document.createElement("p");
+                detalhes.textContent =
+                    `${formatarPreco(servico.preco)} • ${servico.duracao_minutos} minutos`;
+
+                const estado = document.createElement("span");
+                estado.className = servico.ativo ? "estado" : "estado inativo";
+                estado.textContent = servico.ativo ? "Ativo no cadastro" : "Desativado";
+
+                informacoes.append(nome, detalhes, estado);
+
+                const acoes = document.createElement("div");
+                acoes.className = "acoes-servico";
+
+                const editar = document.createElement("button");
+                editar.type = "button";
+                editar.textContent = "Editar";
+                editar.addEventListener("click", () => {
+                    campoId.value = servico.id;
+                    campoNome.value = servico.nome;
+                    campoPreco.value = Number(servico.preco).toFixed(2);
+                    campoDuracao.value = servico.duracao_minutos;
+                    botaoSalvar.textContent = "Salvar alterações";
+                    botaoCancelarEdicao.hidden = false;
+                    mostrarMensagemServico("Editando: " + servico.nome);
+                    formServico.scrollIntoView({ behavior: "smooth", block: "center" });
+                    campoNome.focus();
+                });
+
+                const alternar = document.createElement("button");
+                alternar.type = "button";
+                alternar.textContent = servico.ativo ? "Desativar" : "Ativar";
+                alternar.addEventListener("click", async () => {
+                    alternar.disabled = true;
+
+                    const { error: erroAtualizacao } = await client
+                        .from("servicos")
+                        .update({ ativo: !servico.ativo })
+                        .eq("id", servico.id);
+
+                    alternar.disabled = false;
+
+                    if (erroAtualizacao) {
+                        console.error(erroAtualizacao);
+                        mostrarMensagemServico(
+                            "Não foi possível alterar o status. Verifique as permissões no Supabase.",
+                            "erro"
+                        );
+                        return;
+                    }
+
+                    mostrarMensagemServico(
+                        servico.ativo ? "Serviço desativado." : "Serviço ativado.",
+                        "sucesso"
+                    );
+                    await carregarServicos();
+                });
+
+                acoes.append(editar, alternar);
+                item.append(informacoes, acoes);
+                listaServicos.appendChild(item);
+            });
+
+            mostrarMensagemServico(`${data.length} serviço(s) cadastrado(s).`, "sucesso");
+        }
+
+        formServico.addEventListener("submit", async evento => {
+            evento.preventDefault();
+
+            if (perfilAtual?.papel !== "dono") {
+                mostrarMensagemServico("Somente o dono pode gerenciar serviços.", "erro");
+                return;
+            }
+
+            if (enviandoServico) return;
+
+            const nome = campoNome.value.trim();
+            const preco = Number(campoPreco.value);
+            const duracao = Number(campoDuracao.value);
+            const id = campoId.value;
+
+            if (nome.length < 2) {
+                mostrarMensagemServico("Digite um nome de serviço válido.", "erro");
+                campoNome.focus();
+                return;
+            }
+
+            if (!Number.isFinite(preco) || preco < 0 || preco > 99999.99) {
+                mostrarMensagemServico("Informe um preço válido.", "erro");
+                campoPreco.focus();
+                return;
+            }
+
+            if (!Number.isInteger(duracao) || duracao < 1 || duracao > 600) {
+                mostrarMensagemServico("Informe uma duração entre 1 e 600 minutos.", "erro");
+                campoDuracao.focus();
+                return;
+            }
+
+            enviandoServico = true;
+            botaoSalvar.disabled = true;
+            botaoSalvar.textContent = "Salvando...";
+
+            try {
+                const valores = {
+                    nome,
+                    preco,
+                    duracao_minutos: duracao
+                };
+
+                const resultado = id
+                    ? await client.from("servicos").update(valores).eq("id", id)
+                    : await client.from("servicos").insert({ ...valores, ativo: true });
+
+                if (resultado.error) throw resultado.error;
+
+                limparFormulario();
+                mostrarMensagemServico(
+                    id ? "Serviço atualizado com sucesso." : "Serviço adicionado com sucesso.",
+                    "sucesso"
+                );
+                await carregarServicos();
+            } catch (erro) {
+                console.error("Erro ao salvar serviço:", erro);
+                mostrarMensagemServico(
+                    erro.message ||
+                    "Não foi possível salvar. Confira as permissões e a estrutura da tabela servicos.",
+                    "erro"
+                );
+            } finally {
+                enviandoServico = false;
+                botaoSalvar.disabled = false;
+                if (!campoId.value) botaoSalvar.textContent = "Adicionar serviço";
+            }
+        });
+
+        document.getElementById("novo-servico").addEventListener("click", () => {
+            limparFormulario();
+            mostrarMensagemServico("Preencha os dados do novo serviço.");
+            campoNome.focus();
+        });
+
+        botaoCancelarEdicao.addEventListener("click", () => {
+            limparFormulario();
+            mostrarMensagemServico("Edição cancelada.");
+        });
+
+        async function iniciarPainel() {
+            try {
+                const { data: sessaoData, error: erroSessao } =
+                    await client.auth.getSession();
+
+                if (erroSessao) throw erroSessao;
+
+                usuarioAtual = sessaoData.session?.user;
+
+                if (!usuarioAtual) {
+                    window.location.replace("./login.html");
+                    return;
+                }
+
+                const { data: perfil, error } = await client
+                    .from("perfis")
+                    .select("id, nome, papel, barbeiro_id")
+                    .eq("id", usuarioAtual.id)
+                    .maybeSingle();
+
+                if (error) throw error;
+                if (!perfil) throw new Error("Perfil administrativo não encontrado.");
+
+                perfilAtual = perfil;
+
+                titulo.textContent = "Olá, " + (perfil.nome || "seja bem-vindo") + "!";
+                subtitulo.textContent = perfil.papel === "dono"
+                    ? "Você está acessando o painel do proprietário."
+                    : "Você está acessando o painel do barbeiro.";
+
+                cartoes.replaceChildren();
+
+                if (perfil.papel === "dono") {
+                    criarCartao(
+                        "▦",
+                        "Agendamentos",
+                        "Consulte e administre as reservas de todos os barbeiros.",
+                        abrirAgendamentos,
+                        "Abrir agendamentos"
+                    );
+
+                    criarCartao(
+                        "R$",
+                        "Financeiro",
+                        "Acompanhe o faturamento, a comissão do Gustavo e os repasses.",
+                        abrirFinanceiro,
+                        "Abrir financeiro"
+                    );
+
+                    criarCartao(
+                        "✂",
+                        "Serviços",
+                        "Cadastre cortes, altere preços e durações.",
+                        abrirGerenciamento,
+                        "Gerenciar serviços"
+                    );
+                } else if (perfil.papel === "barbeiro") {
+                    criarCartao(
+                        "▦",
+                        "Minha agenda",
+                        "Consulte os horários, veja os clientes e atualize os atendimentos.",
+                        abrirAgendamentos,
+                        "Abrir minha agenda"
+                    );
+
+                    criarCartao(
+                        "R$",
+                        "Meu financeiro",
+                        "Consulte o faturamento e os atendimentos realizados por você.",
+                        abrirFinanceiro,
+                        "Abrir financeiro"
+                    );
+                } else {
+                    throw new Error("Papel de usuário inválido.");
+                }
+
+                cartoes.hidden = false;
+                mensagem.textContent = "Login validado. Seu perfil foi identificado corretamente.";
+            } catch (erro) {
+                console.error("Erro ao abrir painel:", erro);
+                titulo.textContent = "Não foi possível carregar o painel";
+                subtitulo.textContent = "Confira a mensagem abaixo.";
+                mensagem.textContent = erro.message ||
+                    "Ocorreu um erro ao carregar seu acesso.";
+            }
+        }
+
+        document.getElementById("sair").addEventListener("click", async () => {
+            const { error } = await client.auth.signOut();
+
+            if (error) {
+                mensagem.textContent = "Não foi possível sair. Tente novamente.";
+                console.error(error);
+                return;
+            }
+
+            window.location.replace("./login.html");
+        });
+
+        iniciarPainel();
+    })();
+    </script>
+</body>
+</html>
