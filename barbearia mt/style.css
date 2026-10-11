@@ -1300,3 +1300,13 @@ body.site-pronto #conteudo-site {
         font-size: 12px;
     }
 }
+input[type="date"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 10px;
+  font-size: 14px;
+  color-scheme: dark;
+}
