@@ -9,83 +9,287 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      color-scheme: dark;
-      --bg:#0b0b0b; --card:#151515; --border:#303030;
-      --gold:#d4a45b; --text:#f5f5f5; --muted:#aaa;
-    }
-    * { box-sizing:border-box; }
-    body {
-      margin:0; background:var(--bg); color:var(--text);
-      font-family:"DM Sans",sans-serif;
-    }
-    header {
-      display:flex; align-items:center; justify-content:space-between;
-      flex-wrap:wrap; gap:12px; padding:20px 5%;
-      background:#121212; border-bottom:1px solid #292929;
-    }
-    header h1 { margin:0; font:700 22px "Playfair Display",serif; }
-    header h1 span { color:var(--gold); }
-    button,input,select { font:inherit; }
-    button,.link {
-      display:inline-flex; align-items:center; justify-content:center;
-      min-height:42px; padding:10px 14px; border:1px solid #444;
-      border-radius:8px; background:#202020; color:#fff;
-      text-decoration:none; cursor:pointer;
-    }
-    button:hover,.link:hover { border-color:var(--gold); }
-    button:disabled { opacity:.55; cursor:wait; }
-    .gold { background:var(--gold); color:#111; border-color:var(--gold); font-weight:700; }
-    main { width:min(1150px,92%); margin:32px auto; }
-    h2 { font:700 clamp(27px,5vw,36px) "Playfair Display",serif; margin:0 0 8px; }
-    h3 { margin:0 0 16px; }
-    p { color:var(--muted); line-height:1.6; }
-    .box {
-      padding:20px; margin:20px 0; background:var(--card);
-      border:1px solid var(--border); border-radius:14px;
-    }
-    .filters,.form-grid {
-      display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:14px; align-items:end;
-    }
-    .cards {
-      display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:14px; margin:20px 0;
-    }
-    .metric {
-      padding:18px; background:var(--card);
-      border:1px solid var(--border); border-radius:12px;
-      min-width:0;
-    }
-    .metric span { color:var(--muted); font-size:13px; }
-    .metric strong { display:block; margin-top:8px; font-size:clamp(20px,3vw,28px); overflow-wrap:anywhere; }
-    .field { display:grid; gap:7px; }
-    label { color:#ddd; font-size:13px; }
-    input,select {
-      width:100%; min-width:0; padding:12px; border-radius:8px;
-      border:1px solid #393939; background:#0d0d0d; color:#fff;
-    }
-    input:focus,select:focus { outline:1px solid var(--gold); border-color:var(--gold); }
-    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
-    .notice { white-space:pre-wrap; overflow-wrap:anywhere; }
-    .error { color:#ff9999; }
-    .success { color:#9cdaa7; }
-    .history { display:grid; gap:10px; }
-    .history-item {
-      padding:14px; border:1px solid var(--border);
-      border-radius:9px; background:#101010;
-    }
-    .history-item strong { display:block; margin-bottom:5px; }
-    footer { padding:24px; text-align:center; color:#777; font-size:13px; }
-    [hidden] { display:none !important; }
-    @media(max-width:700px) {
-      header { padding:16px 4%; }
-      header h1 { font-size:18px; }
-      .filters,.form-grid { grid-template-columns:1fr; }
-      .cards { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-      .metric { padding:12px; }
-      .box { padding:15px; }
-    }
+ 
+:root {
+  color-scheme: dark;
+  --bg: #0b0b0b;
+  --card: #151515;
+  --border: #303030;
+  --gold: #d4a45b;
+  --text: #f5f5f5;
+  --muted: #aaa;
+}
+
+/* Configuração geral */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "DM Sans", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+/* Cabeçalho */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px 5%;
+  background: #121212;
+  border-bottom: 1px solid #292929;
+}
+
+header h1 {
+  margin: 0;
+  font: 700 22px "Playfair Display", serif;
+}
+
+header h1 span {
+  color: var(--gold);
+}
+
+/* Botões e links */
+button,
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #202020;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button:hover,
+.link:hover {
+  border-color: var(--gold);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.gold {
+  background: var(--gold);
+  color: #111;
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+/* Conteúdo principal */
+main {
+  width: min(1150px, 92%);
+  margin: 32px auto;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font: 700 clamp(27px, 5vw, 36px) "Playfair Display", serif;
+}
+
+h3 {
+  margin: 0 0 16px;
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Caixas e formulários */
+.box {
+  padding: 20px;
+  margin: 20px 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.filters,
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+label {
+  color: #ddd;
+  font-size: 13px;
+}
+
+/* Campos de entrada */
+input,
+select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #393939;
+  border-radius: 8px;
+  background: #0d0d0d;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+input[type="date"],
+input[type="month"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px;
+  font-size: 14px;
+  color-scheme: dark;
+}
+
+input:focus,
+select:focus {
+  outline: 1px solid var(--gold);
+  border-color: var(--gold);
+}
+
+/* Indicadores financeiros */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+}
+
+.metric {
+  min-width: 0;
+  padding: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.metric span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 8px;
+  font-size: clamp(20px, 3vw, 28px);
+  overflow-wrap: anywhere;
+}
+
+/* Ações e mensagens */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.notice {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.error {
+  color: #ff9999;
+}
+
+.success {
+  color: #9cdaa7;
+}
+
+/* Histórico de atendimentos */
+.history {
+  display: grid;
+  gap: 10px;
+}
+
+.history-item {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #101010;
+}
+
+.history-item strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Rodapé */
+footer {
+  padding: 24px;
+  text-align: center;
+  color: #777;
+  font-size: 13px;
+}
+
+/* Elementos ocultos */
+[hidden] {
+  display: none !important;
+}
+
+/* Ajustes para celulares */
+@media (max-width: 700px) {
+  header {
+    padding: 16px 4%;
+  }
+
+  header h1 {
+    font-size: 18px;
+  }
+
+  main {
+    width: 92%;
+    margin: 22px auto;
+  }
+
+  .filters,
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .metric {
+    padding: 12px;
+  }
+
+  .box {
+    padding: 15px;
+  }
+
+  .actions button,
+  .actions .link {
+    max-width: 100%;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -135,7 +339,7 @@
       <strong id="ticket">—</strong>
     </article>
     <article class="metric" id="card-comissao" hidden>
-      <span>Comissão de Gustavo (50%)</span>
+      <span>Comissão d Gustavo (50%)</span>
       <strong id="comissao">—</strong>
     </article>
     <article class="metric" id="card-repassado" hidden>
